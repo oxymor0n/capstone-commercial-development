@@ -1,0 +1,14 @@
+div {
+  margin: 10px;
+}
+
+.plain {
+  color: brown;
+  background-color: lightgray;
+}
+
+.highlight {
+  color: darkorange;
+  background-color: dodgerblue;
+  font-family: "airplanes in the night sky";
+}

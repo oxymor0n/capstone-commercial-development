@@ -1,56 +1,123 @@
+var inputs = {
+  "311": {
+    "source": "data/311.geojson",
+    "label": "311 Complaints Rate",
+    "relevantDataFields": {
+      "Count_2013": "Count 2013",
+      "Count_2014": "Count 2014",
+      "Count_2015": "Count 2015",
+      "Count_2016": "Count 2016"
+    }
+  },
+  "entropy": {
+    "source": "data/Entropy.geojson",
+    "label": "Entropy",
+    "relevantDataFields": {
+      "incoming_e": "incoming_e",
+      "incoming_1": "incoming_1",
+      "incoming_2": "incoming_2",
+      "incoming_3": "incoming_3",
+      "incoming_4": "incoming_4"
+    }
+  },
+  "lehd": {
+    "source": "data/lehd.geojson",
+    "label": "Longitudinal Employer-Household Dynamics",
+    "relevantDataFields": {
+      "lehd_csv_r": "LEHD Resident",
+      "lehd_csv_i": "LEHD Incoming"
+    }
+  },
+  "pluto": {
+    "source": "data/pluto.geojson",
+    "label": "Pluto Data",
+    "relevantDataFields": {
+      "LotArea": "Lot Area"
+    }
+  },
+  "mta": {
+    "source": "data/mta.geojson",
+    "label": "MTA Usage",
+    "relevantDataFields": {
+      "ENTRIES": "Entries",
+      "EXITS": "Exits"
+    }
+  },
+  "sales": {
+    "source": "data/Sales.geojson",
+    "label": "Real Estate Sales",
+    "relevantDataFields": {
+      "Sheet1__RE": "RE",
+      "Sheet1__CO": "CO",
+      "Sheet1__TO": "TO",
+      "Sheet1__LA": "LA",
+      "Sheet1__GS": "GS",
+      "Sheet1__YE": "YE",
+      "Sheet1__SA": "SA"
+    }
+  },
+  "tensource": {
+    "source": "data/TenSource.geojson",
+    "label": "TenSource Data",
+    "relevantDataFields": {
+      "z": "Rent Price per sq ft"
+    }
+  },
+  "tweets": {
+    "source": "data/Tweets.geojson",
+    "label": "Tweets Count (Oct 2014 - Feb 2015)",
+    "relevantDataFields": {
+      "tweet_coun": "Tweets Count"
+    }
+  },
+  "wealth": {
+    "source": "data/Wealth.geojson",
+    "label": "Average Wealth",
+    "relevantDataFields": {
+      "Ave_Wealth": "Average Wealth"
+    }
+  }
+};
+
 var mapLayers = {};
-var infoBoxes = {};
+var dataByZipcode = {};
 
-$.getJSON('data/311.geojson', function(data) {
-  var layer = createGeoJsonLayer(
-    "311", "311 Complaints Rate", data, 
-    function color311(feature) {
-      var properties = feature.properties;
-      var total311CallsCount = properties["Count_2013"] + properties["Count_2014"] + properties["Count_2015"] + properties["Count_2016"];
-      return total311CallsCount > 16000 ? '#7f2704' :
-             total311CallsCount > 8000  ? '#a63603' :
-             total311CallsCount > 4000  ? '#d94801' :
-             total311CallsCount > 2000  ? '#f16913' :
-             total311CallsCount > 1000  ? '#fd8d3c' :
-             total311CallsCount > 500   ? '#fdae6b' :
-             total311CallsCount > 250   ? '#fdd0a2' :
-             total311CallsCount > 125   ? '#fee6ce' :
-                                          '#fff5eb' ;
-    },
-    function data311(feature) {
-      var properties = feature.properties;
-      return [properties["Count_2013"]/100, properties["Count_2014"]/100, properties["Count_2015"]/100, properties["Count_2016"]/100];
-    }
-  );
-  
-  infoBoxes[layer.label] = layer.infoBox;
-  mapLayers[layer.label] = layer.geoJsonLayer;
-});
 
-// load data from Mta.geojson and create a Leaflet geoJSON layer from that data
-$.getJSON('data/MTA_turnstile.geojson', function(data) {
-  var layer = createGeoJsonLayer(
-    "mta", "MTA Usage", data, 
-    function colorMta(feature) {
-      var totalMtaCallsCount = feature.properties["ENTRIES"] + feature.properties["EXITS"];
-      return totalMtaCallsCount > Math.pow(2, 40) ? '#00441b' :
-             totalMtaCallsCount > Math.pow(2, 38) ? '#006d2c' :
-             totalMtaCallsCount > Math.pow(2, 36) ? '#238b45' :
-             totalMtaCallsCount > Math.pow(2, 34) ? '#41ae76' :
-             totalMtaCallsCount > Math.pow(2, 32) ? '#66c2a4' :
-             totalMtaCallsCount > Math.pow(2, 30) ? '#99d8c9' :
-             totalMtaCallsCount > Math.pow(2, 28) ? '#ccece6' :
-             totalMtaCallsCount > Math.pow(2, 26) ? '#e5f5f9' :
-                                                    '#f7fcfd' ;
-    },
-    function dataMta(feature) {
-      return [feature.properties["ENTRIES"]/1000000000, feature.properties["EXITS"]/1000000000];
+function extractRelevantData(rawData, dataType, relevantDataFields, filteredData) {
+  for (var i = 0; i < rawData.features.length; i++) {
+    var feature = rawData.features[i];
+    var featureId = feature.properties["GEOID10"];
+
+    if (typeof filteredData[featureId] === "undefined") {
+      filteredData[featureId] = {}
+    };
+    if (typeof filteredData[featureId][dataType] === "undefined") {
+      filteredData[featureId][dataType] = {}
     }
-  );
+    
+    for (fieldName in relevantDataFields) {
+      var fieldLabel = relevantDataFields[fieldName];
+      filteredData[featureId][dataType][fieldLabel] = feature.properties[fieldName];
+    }
+  }
+}
+
+var inputsCount = 0;
+for (inputId in inputs) {
+  var inputConfig = inputs[inputId];
+  console.log("READING ", inputConfig.source);
   
-  infoBoxes[layer.label] = layer.infoBox;
-  mapLayers[layer.label] = layer.geoJsonLayer;
-});
+  // load data from the geoJSON file and create a Leaflet geoJSON layer from that data
+  $.getJSON(inputConfig.source, function(data) {
+    var input = inputs[data.id];
+    console.log("RENDERING "+input.label);
+    extractRelevantData(data, input.label, input.relevantDataFields, dataByZipcode);
+    mapLayers[input.label] = createGeoJsonLayer(input.id, data);
+  });
+  
+  inputsCount++;
+}
+
 
 var waitOnMapData = setInterval(function () {
   // make sure all GeoJSON layers have been initialized
@@ -59,25 +126,23 @@ var waitOnMapData = setInterval(function () {
   
   var layerCount = 0;
   for (layer in mapLayers) {
-    if (mapLayers[map] === null) { return false; }
+    if (mapLayers[layer] === null) { return false; }
     layerCount++;
   }
-  if (layerCount < 2) { return false };
+  if (layerCount < inputsCount) { return false };
 
   // All maps have been initialized, create a layers selector
   console.log("All data have loaded, creating control");
   L.control.layers(null, mapLayers, {position: "topright", collapsed: false}).addTo(map);  
   
+  infoBox.addTo(map);
+  
   // clear the interval after we've finished creating the Layers control
   clearInterval(waitOnMapData);
 }, 100);
 
+
 map.on('overlayadd', function (event) {
   console.log(event);
-  infoBoxes[event.name].addTo(map);
-});
-
-map.on('overlayremove', function (event) {
-  console.log(event);
-  infoBoxes[event.name].removeFrom(map);
+  currentLabel = event.name;
 });
