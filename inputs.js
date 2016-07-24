@@ -1,5 +1,5 @@
 
-var inputs = {
+var geoJsonInputs = {
   "311": {
     "source": "data/311.geojson",
     "label": "311 Complaints Rate",
@@ -9,10 +9,13 @@ var inputs = {
       "Count_2015": "Complaints Rate (2015)",
       "Count_2016": "Complaints Rate (2016)"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Complaints per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = (featureData["Count_2013"] + featureData["Count_2014"] + 
-                   featureData["Count_2015"] + featureData["Count_2016"])/featureData["Area"];
+      return (featureData["Count_2013"] + featureData["Count_2014"] + 
+              featureData["Count_2015"] + featureData["Count_2016"])/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 12535 ? '#7f0000' :
              value > 8657  ? '#b30000' :
              value > 7000  ? '#d7301f' :
@@ -30,9 +33,12 @@ var inputs = {
     "relevantDataFields": {
       "NB_counts": "New Buildings Count"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total New Buildings per Square Mile ",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["NB_counts"]/featureData["Area"];
+      return featureData["NB_counts"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 44507 ? '#800026' :
              value > 10229 ? '#bd0026' :
              value > 6016  ? '#e31a1c' :
@@ -48,11 +54,14 @@ var inputs = {
     "source": "data/Entropy.geojson",
     "label": "Entropy",
     "relevantDataFields": {
-      "incoming_4": "Entropy Value"
+      "incoming_4": "Commuter Diversity"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Entropy Value",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["incoming_4"];
+      return featureData["incoming_4"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 0.022442197 ? '#081d58' :
              value > 0.005053315 ? '#253494' :
              value > 0.001576715 ? '#225ea8' :
@@ -66,13 +75,16 @@ var inputs = {
   },
   "lehd-incoming": {
     "source": "data/LEHD-incoming.geojson",
-    "label": "LEHD Data (Incoming Workers)",
+    "label": "LEHD Data (Incoming)",
     "relevantDataFields": {
       "lehd_csv_i": "LEHD Incoming Workers"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Incoming Workers per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["lehd_csv_i"]/featureData["Area"];
+      return featureData["lehd_csv_i"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 9556848.397 ? '#49006a' :
              value > 495077.9703 ? '#7a0177' :
              value > 77450.79545 ? '#ae017e' :
@@ -86,13 +98,16 @@ var inputs = {
   },
   "lehd-resident": {
     "source": "data/LEHD-resident.geojson",
-    "label": "LEHD Data (Resident Workers)",
+    "label": "LEHD Data (Resident)",
     "relevantDataFields": {
       "lehd_csv_r": "LEHD Resident Workers"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Residential Workers per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["lehd_csv_r"]/featureData["Area"];
+      return featureData["lehd_csv_r"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 392566.9842 ? '#67001f' :
              value > 98044.91346 ? '#980043' :
              value > 55385.9026  ? '#ce1256' :
@@ -111,9 +126,12 @@ var inputs = {
       "ENTRIES": "Entry Swipes",
       "EXITS": "Exit Swipes"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Turnover per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = (featureData["ENTRIES"] + featureData["EXITS"])/featureData["Area"];
+      return (featureData["ENTRIES"] + featureData["EXITS"])/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 626061747021 ? '#4d004b' :
              value > 189944659261 ? '#810f7c' :
              value > 110276969548 ? '#88419d' :
@@ -131,9 +149,12 @@ var inputs = {
     "relevantDataFields": {
       "LotArea": "Tax Lot Area (sq ft)"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Tax Land per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["LotArea"]/featureData["Area"];
+      return featureData["LotArea"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 43283820.27 ? '#014636' :
              value > 31159186.67 ? '#016c59' :
              value > 26982757.81 ? '#02818a' :
@@ -160,9 +181,12 @@ var inputs = {
       "OtherArea": "Total Other Area (sq ft)",
       "YearBuilt": "Year Built"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Building Area per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["BldgArea"]/featureData["Area"];
+      return featureData["BldgArea"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 240913044.8 ? '#023858' :
              value > 100079918.2 ? '#045a8d' :
              value > 43184945.18 ? '#0570b0' :
@@ -181,9 +205,12 @@ var inputs = {
       "Sheet1__GS": "Gross Square Footage",
       "Sheet1__SA": "Median Sales Price"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Square Feet per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["Sheet1__GS"]/featureData["Area"];
+      return featureData["Sheet1__GS"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 1109636.436 ? '#084081' :
              value > 116481.6309 ? '#0868ac' :
              value > 32649.57457 ? '#2b8cbe' :
@@ -201,9 +228,12 @@ var inputs = {
     "relevantDataFields": {
       "z": "Rent Price ($ per sq ft)"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Square Feet per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["z"]/featureData["Area"];
+      return featureData["z"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 144021.269  ? '#00441b' :
              value > 17869.45101 ? '#006d2c' :
              value > 9346.110886 ? '#238b45' :
@@ -217,13 +247,16 @@ var inputs = {
   },
   "tweets": {
     "source": "data/Tweets.geojson",
-    "label": "Tweets Count (Oct 2014 - Feb 2015)",
+    "label": "Tweets Count",
     "relevantDataFields": {
-      "tweet_coun": "Tweets Count"
+      "tweet_coun": "Tweets Count (Oct 2014 - Feb 2015)"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Total Tweets per Square Mile",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["tweet_coun"]/featureData["Area"];
+      return featureData["tweet_coun"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 18947 ? '#000000' :
              value > 7784  ? '#252525' :
              value > 4225  ? '#525252' :
@@ -241,9 +274,12 @@ var inputs = {
     "relevantDataFields": {
       "Ave_Wealth": "Average Wealth"
     },
-    "colorFunction": function (feature) {
+    "heatMapUnit": "Average Wealth Value",
+    "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      var value = featureData["Ave_Wealth"];
+      return featureData["Ave_Wealth"];
+    },
+    "heatMapColorFunction": function (value) {
       return value > 63627.03651 ? '#3f007d' :
              value > 61816.39781 ? '#54278f' :
              value > 60463.57094 ? '#6a51a3' :
@@ -254,5 +290,46 @@ var inputs = {
              value > 53705.02323 ? '#efedf5' :
                                    '#fcfbfd' ;
     }
+  },
+  "prediction": {
+    "source": "data/Model2015.geojson",
+    "label": "Prediction Model",
+    "relevantDataFields": {
+      "predicted_": "Predicted Vacancy Rate 2015 (Percent)"
+    },
+    "heatMapUnit": "Prediction Value",
+    "heatMapValueFunction": function (feature) {
+      var featureData = feature.properties;
+      return featureData["predicted_"]/featureData["Area"];
+    },
+    "heatMapColorFunction": function (value) {
+      return value > 0.154420376 ? '#67000d' :
+             value > 0.120788427 ? '#a50f15' :
+             value > 0.101940919 ? '#cb181d' :
+             value > 0.083103677 ? '#ef3b2c' :
+             value > 0.073396893 ? '#fb6a4a' :
+             value > 0.049543839 ? '#fc9272' :
+             value > 0.037874424 ? '#fcbba1' :
+             value > 0.014972865 ? '#fee0d2' :
+                                   '#fff5f0' ;
+    }
   }
 };
+
+
+var secondaryInputs = {
+  "rac": {
+    "source": "data/RAC14_ZC.geojson",
+    "label": "Total Number of Jobs by Residence Area",
+    "relevantDataFields": {
+      "Sheet1__C0": "Total Number of Jobs by Residence Area"
+    }
+  },
+  "wac": {
+    "source": "data/WAC14_ZC.geojson",
+    "label": "Total Number of Jobs by Workplace Area",
+    "relevantDataFields": {
+      "Sheet1__C0": "Total Number of Jobs by Workplace Area"
+    }
+  }
+}

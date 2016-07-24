@@ -11,7 +11,7 @@ var map = L.map('map', {
 // Render map tiles from CartoDB
 //=====================================================================================================================
 
-var cartoDbBaseMapDark = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+var cartoDbBaseMapDark = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
 });
 map.addLayer(cartoDbBaseMapDark);
@@ -36,22 +36,26 @@ var currentLabel = "";
 map.on('overlayadd', function (event) { currentLabel = event.name; });
 
 // update the content of the info box using data from each geoJSON feature's properties field
-infoBox.update = function (properties) {
+infoBox.update = function (feature) {
   var infoBoxDiv = L.DomUtil.get("infobox");
   
-  if (properties === null || typeof properties === "undefined") {
+  if (feature === null || typeof feature === "undefined") {
     infoBoxDiv.innerHTML = "<div><h3>Commercial Development Data</h3>Hover over a ZIP code</div>";
 
   } else {
-    var zipcode = properties["GEOID10"];
+    var zipcode = feature.properties["GEOID10"];
+    var data = dataByZipcode[zipcode];
     var dataAsText = "<ul>";
-    for (field in dataByZipcode[zipcode][currentLabel]) {
-      dataAsText = dataAsText + "<li>" + field + ": " + dataByZipcode[zipcode][currentLabel][field] + "</li>";
+    for (field in data[currentLabel]) {
+      dataAsText = dataAsText + "<li>" + field + ": " + data[currentLabel][field] + "</li>";
     }
     dataAsText = dataAsText + "</ul>";
     
     infoBoxDiv.innerHTML = "<div><h3>Commercial Development Data for ZIP code " + zipcode + "</h3>" +
-      "<h4>" + currentLabel + "</h4>" +
+      "<h4>" + feature.heatMapUnit + ": " + feature.heatMapValue + "</h4>" +
+      "<h4>" + secondaryInputs.rac.label + ": " + data[secondaryInputs.rac.label][secondaryInputs.rac.label] + "</h4>" +
+      "<h4>" + secondaryInputs.wac.label + ": " + data[secondaryInputs.wac.label][secondaryInputs.wac.label] + "</h4>" +
+      "<h4>" + currentLabel + ":</h4>" +
       dataAsText + "</div>";
   }
 };
@@ -89,15 +93,30 @@ function extractRelevantData(rawData, dataType, relevantDataFields, filteredData
 
 // call jQuery's getJSON to load the geoJSON files
 var inputCount = 0;
-for (var id in inputs) {  
-  $.getJSON(inputs[id].source, function(data) {
-    var input = inputs[data.id];
+for (var id in geoJsonInputs) {  
+  $.getJSON(geoJsonInputs[id].source, function(data) {
+    var input = geoJsonInputs[data.id];
     console.log("READING " + input.label);
     extractRelevantData(data, input.label, input.relevantDataFields, dataByZipcode);
     input.geojson = data;
+    for (var i = 0; i < input.geojson.features.length; i++) {
+      var feature = input.geojson.features[i];
+      feature.heatMapUnit = input.heatMapUnit;
+      feature.heatMapValue = input.heatMapValueFunction(feature);
+      feature.heatMapColor = input.heatMapColorFunction(feature.heatMapValue);
+    }
     console.log("FINISHED READING "+input.label);
   });
   inputCount++;
+}
+
+for (id in secondaryInputs) {
+  $.getJSON(secondaryInputs[id].source, function(data) {
+    var input = secondaryInputs[data.id];
+    console.log("READING " + input.label);
+    extractRelevantData(data, input.label, input.relevantDataFields, dataByZipcode);
+    console.log("FINISHED READING "+input.label);
+  });
 }
 
 
@@ -106,12 +125,12 @@ for (var id in inputs) {
 //=====================================================================================================================
 
 // helper function to create a Leaflet geoJSON layer
-function createGeoJsonLayer(id, geoJsonData, getFeatureColor) {
+function createGeoJsonLayer(id, geoJsonData) {
   
   // function that calculate the style for each geoJSON feature 
   function calculateFeatureStyle(feature) {
     return {
-      fillColor: getFeatureColor(feature),
+      fillColor: feature.heatMapColor,
       fillOpacity: 0.7,
       weight: 1,
       opacity: 0.7,
@@ -135,7 +154,7 @@ function createGeoJsonLayer(id, geoJsonData, getFeatureColor) {
         if (!L.Browser.ie && !L.Browser.opera) {
           layer.bringToFront();
         }
-        infoBox.update(layer.feature.properties);
+        infoBox.update(layer.feature);
       },
 
       mouseout: function (e) {
@@ -157,13 +176,13 @@ function createGeoJsonLayer(id, geoJsonData, getFeatureColor) {
 // iterate through all the input data and render each geoJSON layer in order
 function renderGeoJsons() {
   var mapLayers = {};
-  console.log(inputs);
+  console.log(geoJsonInputs);
 
   // render each geoJSON layer in order
-  for (id in inputs) {
-    var input = inputs[id];
+  for (id in geoJsonInputs) {
+    var input = geoJsonInputs[id];
     console.log("RENDERING " + input.label);
-    mapLayers[input.label] = createGeoJsonLayer(input.geojson.id, input.geojson, input.colorFunction);
+    mapLayers[input.label] = createGeoJsonLayer(input.geojson.id, input.geojson);
   }
 
   // render the layer selector
@@ -176,8 +195,8 @@ var waitOnMapData = setInterval(function () {
   console.log("Checking if all data have loaded...");
   
   var geojsonCount = 0;
-  for (var id in inputs) {
-    if (typeof inputs[id].geojson === "undefined") { return false; }
+  for (var id in geoJsonInputs) {
+    if (typeof geoJsonInputs[id].geojson === "undefined") { return false; }
     geojsonCount++;
   }
   console.log("Loaded " + geojsonCount + "/" + inputCount + " files");
