@@ -52,11 +52,11 @@ var geoJsonInputs = {
   },
   "entropy": {
     "source": "data/Entropy.geojson",
-    "label": "Entropy",
+    "label": "Commuter Diversity",
     "relevantDataFields": {
       "incoming_4": "Commuter Diversity"
     },
-    "heatMapUnit": "Entropy Value",
+    "heatMapUnit": "Commuter Diversity Value",
     "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
       return featureData["incoming_4"];
@@ -274,21 +274,21 @@ var geoJsonInputs = {
     "relevantDataFields": {
       "Ave_Wealth": "Average Wealth"
     },
-    "heatMapUnit": "Average Wealth Value",
+    "heatMapUnit": "Average Wealth Normalized",
     "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
-      return featureData["Ave_Wealth"];
+      return featureData["Ave_Wealth"]/featureData["Join_Count"];
     },
     "heatMapColorFunction": function (value) {
-      return value > 63627.03651 ? '#3f007d' :
-             value > 61816.39781 ? '#54278f' :
-             value > 60463.57094 ? '#6a51a3' :
-             value > 58751.14435 ? '#807dba' :
-             value > 57427.73844 ? '#9e9ac8' :
-             value > 55918.76984 ? '#bcbddc' :
-             value > 53705.02323 ? '#dadaeb' :
-             value > 53705.02323 ? '#efedf5' :
-                                   '#fcfbfd' ;
+      return value > 18246 ?'#3f007d' :
+             value > 8792 ? '#54278f' :
+             value > 2516 ? '#6a51a3' :
+             value > 1712 ? '#807dba' :
+             value > 1350 ? '#9e9ac8' :
+             value > 1130 ? '#bcbddc' :
+             value > 974 ?  '#dadaeb' :
+             value > 725 ?  '#efedf5' :
+                            '#fcfbfd' ;
     }
   },
   "prediction": {
@@ -297,7 +297,7 @@ var geoJsonInputs = {
     "relevantDataFields": {
       "predicted_": "Predicted Vacancy Rate 2015 (Percent)"
     },
-    "heatMapUnit": "Prediction Value",
+    "heatMapUnit": "Prediction Value Normalized",
     "heatMapValueFunction": function (feature) {
       var featureData = feature.properties;
       return featureData["predicted_"]/featureData["Area"];
@@ -330,6 +330,13 @@ var secondaryInputs = {
     "label": "Total Number of Jobs by Workplace Area",
     "relevantDataFields": {
       "Sheet1__C0": "Total Number of Jobs by Workplace Area"
+    }
+  },
+  "dob": {
+    "source": "data/DOB.geojson",
+    "label": "Total Area (square mile)",
+    "relevantDataFields": {
+      "Area": "Total Area (square mile)"
     }
   }
 }

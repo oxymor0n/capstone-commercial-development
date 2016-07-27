@@ -55,6 +55,7 @@ infoBox.update = function (feature) {
       "<h4>" + feature.heatMapUnit + ": " + feature.heatMapValue + "</h4>" +
       "<h4>" + secondaryInputs.rac.label + ": " + data[secondaryInputs.rac.label][secondaryInputs.rac.label] + "</h4>" +
       "<h4>" + secondaryInputs.wac.label + ": " + data[secondaryInputs.wac.label][secondaryInputs.wac.label] + "</h4>" +
+      "<h4>" + secondaryInputs.dob.label + ": " + data[secondaryInputs.dob.label][secondaryInputs.dob.label] + "</h4>" +
       "<h4>" + currentLabel + ":</h4>" +
       dataAsText + "</div>";
   }
